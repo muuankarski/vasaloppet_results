@@ -4,7 +4,9 @@ library(extrafont)
 loadfonts()
 library(viridis)
 
-d <- readRDS("./data/resultat_med_splits_tidy.RDS") %>% as_tibble()
+vuosi <- 2019
+
+d <- readRDS("./data/resultat_med_splits_tidy_2019.RDS") %>% as_tibble()
 
 split_data <- data_frame(
   split = c('Start', 'Smågan','Mångsbodarna','Risberg','Evertsberg','Oxberg','Hökberg','Eldris','Mora Förvarning','Finish'),
@@ -17,14 +19,13 @@ d$split_place <- as.integer(d$split_place)
 
 # lisätään kaikille lähtöpaikalle aika 0
 d_lahto <- d %>% filter(split == "Finish") %>% 
-  mutate(split_time = as.POSIXct(x = "2018-03-07 00:00:00 EET"),
+  mutate(split_time = as.POSIXct(x = "2019-03-03 00:00:00 EET"),
          split = "Start")
 
-d <- bind_rows(d,d_lahto)
+bind_rows(d,d_lahto) %>% 
+  left_join(., split_data) -> dd #%>%  filter(grepl("FIN", nat), sex == "men") -> dd
 
-d %>% left_join(., split_data) -> dd #%>%  filter(grepl("FIN", nat), sex == "men") -> dd
-
-dd$mitali <- ifelse(dd$time < as.POSIXct(x = "2018-03-07 06:36:00 EET"), "mitali", "ei mitalia")
+dd$mitali <- ifelse(dd$time < as.POSIXct(x = "2019-03-03 06:58:53 EET"), "mitali", "ei mitalia")
 
 dd_pos <- dd %>% filter(split %in% c("Smågan","Finish")) %>% mutate(net_position = lag(split_place) - split_place) %>% filter(!is.na(net_position)) %>% arrange(net_position)
 
@@ -59,25 +60,17 @@ p <- ggplot(data = dd, aes(x = distance_cum, y = split_time, group = nr, color =
   # scale_color_ipsum() +
   scale_color_manual(values = c("#4DBBD5B2","#FFD700")) +
   theme(axis.text.x = element_text(angle = 45)) +
-  labs(title = "Overtakes in Vasaloppet 2018: Top and bottom 3 skiers",
+  labs(title = glue("Overtakes in Vasaloppet {vuosi}: Top and bottom 3 skiers"),
        subtitle = 
 "Each line represent an individual skier, gold with medal, blue without
 Dark color marks the overtakers, white line marks who got overtaken
 Number shows the net difference in positions between Smågan and Finish",
        y= "Race time (hours)", 
        x = NULL,
-       caption = paste0(
-"Data: results.vasaloppet.se/2018\n",
-Sys.time(),
-"\nmarkuskainu.fi"))
+       caption = glue("Data: results.vasaloppet.se/{vuosi}\n{Sys.time()}\nmarkuskainu.fi")
+)
 
-ggsave(filename = "top_bottom3_overtakers.png", plot = p, device = "png", width = 12, height = 8, dpi = 90)
-
-# karskitools::sposti(to = "mikko.kainu@gmail.com", subject = "Ohitukset", liite = "top_bottom3_overtakers.png", body = "kuva!")
-# karskitools::sposti(to = "markus.kainu@kela.fi", subject = "Ohitukset", liite = "top_bottom3_overtakers.png", body = "kuva!")
-
-
-# start_group
+ggsave(filename = glue("kuvat/{vuosi}/top_bottom3_overtakers.png"), plot = p, device = "png", width = 12, height = 8, dpi = 90)
 
 
 dd %>% 
@@ -88,7 +81,7 @@ dd %>%
          nr = 0,
          split_time1 = split_time) -> medal
 
-medal$start_time <- as.POSIXct(x = "2018-03-07 00:00:00 EET")
+medal$start_time <- as.POSIXct(x = "2019-03-03 00:00:00 EET")
 medal$timediff <- (medal$split_time - medal$start_time) * 1.5
 medal$split_time <- medal$start_time + medal$timediff
 
@@ -125,17 +118,13 @@ p <- ggplot(data = dd, aes(x = distance_cum, y = split_time, group = nr, color =
   # scale_color_manual(values = c("#4DBBD5B2","#FFD700")) +
   theme(axis.text.x = element_text(angle = 45)) +
   guides(colour = guide_legend(override.aes = list(alpha=1))) +
-  labs(title = "Start group winners in Vasaloppet 2018",
+  labs(title = glue("Start group winners in Vasaloppet {vuosi}"),
        subtitle = 
          "Each line represent an individual skier, different start groups have different colors
 Number shows the net difference in positions between Smågan and Finish",
        y= "Race time (hours)", 
        x = NULL,
-       caption = paste0(
-         "Data: results.vasaloppet.se/2018\n",
-         Sys.time(),
-         "\nmarkuskainu.fi"))
+       caption = glue("Data: results.vasaloppet.se/{vuosi}\n{Sys.time()}\nmarkuskainu.fi")
+       )
 
-ggsave(filename = "startgroups_winners.png", plot = p, device = "png", width = 12, height = 12, dpi = 90)
-
-karskitools::sposti(to = "mikko.kainu@gmail.com", subject = "Starttiryhmät ja mitalirajat", liite = "startgroups_medallimits.png", body = "terveiset muskarista")
+ggsave(filename = glue("kuvat/{vuosi}/startgroups_winners.png"), plot = p, device = "png", width = 12, height = 12, dpi = 90)
