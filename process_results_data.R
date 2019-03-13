@@ -10,12 +10,6 @@ library(glue)
 library(tidyr)
 setwd("~/btsync/workspace/hiihto/vasaloppet18")
 
-is.even <- function(x) x %% 2 == 0
-
-# event_id <- "VL_9999991678885B00000006B0" # 2018
-event_id <- "VL_9999991678885C0000000700" # 2019
-
-
 # ************************************************************************************
 #
 # Process data
