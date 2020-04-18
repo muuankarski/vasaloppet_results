@@ -12,19 +12,21 @@ library(stringr)
 library(glue)
 library(tidyr)
 library(fs)
-setwd("~/btsync/workspace/hiihto/vasaloppet18")
+library(here)
+setwd(here::here())
 
-vuosi = 2019
+vuosi <- 2020 # add year (vuosi) of your preference 
 
 is.even <- function(x) x %% 2 == 0
 
 tibble(
-  vuosi = c(2016:2019),
+  vuosi = c(2016:2020),
   event_id = c("VL_9999991678885A000000048A",
                "VL_9999991678885A0000000551",
                "VL_9999991678885B00000006B0",
-               "VL_9999991678885C0000000700"),
-  result_pages = c(70,74,80,72)
+               "VL_9999991678885C0000000700",
+               "VL_999999167888680000000764"),
+  result_pages = c(70,74,80,72,72)
 ) -> event_id_df
 
 event_id <- event_id_df[event_id_df$vuosi == vuosi,]$event_id

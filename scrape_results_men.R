@@ -1,7 +1,6 @@
 #!/usr/bin/r
 # This script scrapes the html results from http://results.vasaloppet.se/2018/
-
-setwd('~/btsync/workspace/hiihto/vasaloppet18')
+setwd(here::here())
 
 # Results for men and women have to be pulled separately
 # Lets use the default settings and se we have 469 pages of 25 skiers
@@ -13,20 +12,20 @@ library(stringr)
 library(glue)
 library(tidyr)
 library(fs)
-setwd("~/btsync/workspace/hiihto/vasaloppet18")
 
-vuosi <- 2016
+vuosi <- 2020 # add year (vuosi) of your preference 
 
 is.even <- function(x) x %% 2 == 0
 
 
 tibble(
-  vuosi = c(2016:2019),
+  vuosi = c(2016:2020),
   event_id = c("VL_9999991678885A000000048A",
                "VL_9999991678885A0000000551",
                "VL_9999991678885B00000006B0",
-               "VL_9999991678885C0000000700"),
-  result_pages = c(477,469,470,431)
+               "VL_9999991678885C0000000700",
+               "VL_999999167888680000000764"),
+  result_pages = c(477,469,470,431,407)
 ) -> event_id_df
 
 
@@ -47,7 +46,7 @@ if (length(pages_processed) == 0) pages_processed <- 0
 # dat <- list()
 for (page in max(pages_processed)+1:max_result_pages){
 # for (page in 1:3){
-url <- glue("https://results.vasaloppet.se/{vuosi}/index.php?page={page}&event={event_id}&pid=list&ranking=time_finish_brutto&search%5Bsex%5D=M&search%5Bage_class%5D=%25&search%5Bnation%5D=%25")
+  url <- glue("https://results.vasaloppet.se/{vuosi}/index.php?page={page}&event={event_id}&pid=list&ranking=time_finish_brutto&search%5Bsex%5D=M&search%5Bage_class%5D=%25&search%5Bnation%5D=%25")
 
 tryCatch({
     read_html(url) %>% 
@@ -173,6 +172,16 @@ for (fly in 1:length(flies)){
              Diff = hms::as.hms(Diff),
              `min/ km` = hms::as.hms(`min/ km`),
              `km/h` = as.numeric(`km/h`)
+      )
+  } else if (vuosi == 2020){
+    tmp <- readr::read_csv(flies[fly]) %>% 
+      mutate(V5 = as.integer(V5),
+             `Time Of Day` = hms::as.hms(`Time Of Day`),
+             Time = hms::as_hms(Time),
+             Diff = hms::as_hms(Diff),
+             `min/ km` = hms::as_hms(`min/ km`),
+             `km/h` = as.numeric(`km/h`),
+             Number = as.numeric(Number)
       )
   }
 dat[[fly]] <- tmp
